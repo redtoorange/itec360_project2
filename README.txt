@@ -1,8 +1,3 @@
-ITEC360 Spring 2018
-Project 2: Edit Distance Project
-Andrew McGuiness
-4/24/2018
-
 Contents:
     1. Compiling
     2. Running
@@ -11,16 +6,13 @@ Contents:
 
 
 1. Compiling the Program
-	Easy Way:
     The program comes with a makefile that will compiled the program
     with the necessary flags.  To compile the program, just run the "make"
     command from within the same directory as the makefile.
 
-	Hard Way:
     The program makes uses of a handful of C++11 features so must be compiled
-    with the necessary flags.  This can be done by adding the "-std=c++11" flag 
-    when running g++.  Also, on RUCS the stdlib will need to be statically
-	linked with "-static-libstdc++".
+    with the necessary flags.  This can be done by adding the -std=c++11 flag 
+    when running g++.
 
 
 2. Running the Program

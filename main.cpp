@@ -28,21 +28,21 @@
  *	
  *
  *	Recurrence Equation:
- *	The primary algorithm used is based on the "Wagner-Fischer" algorithm.  The
- *	recurrence relation for the algorithm is as follows:
+ *		The primary algorithm used is based on the "Wagner-Fischer" algorithm.  The
+ *		recurrence relation for the algorithm is as follows:
  *
- *	s(1..i)     -- Contains the first word
- *	t(1..j)     -- Contains the second word
+ *		s(1..i)     -- Contains the first word
+ *		t(1..j)     -- Contains the second word
  *    
- *	M(i, j) = M(i-1, j-1) + copyCost;    if s(i) = t(j)
- *	M(i, j) = min(  
+ *		M(i, j) = M(i-1, j-1) + copyCost;    if s(i) = t(j)
+ *		M(i, j) = min(  
  *					M(i-1, j  ) + deletionCost,
  *					M(i  , j-1) + insertionCost,
  *					M(i-1, j-1) + substitutionCost
- *				);
+ *					);
  *
- *	Base Case:  M(i, 0) = i * insertionCost;
- *				M(0, j) = j * deletionCost;
+ *		Base Case:  M(i, 0) = i * insertionCost;
+ *					M(0, j) = j * deletionCost;
  *
  *    
  *	The Algorithm is modified to allow for variables costs in all areas.  This
@@ -60,25 +60,53 @@
 #include <algorithm>
 using namespace std;
 
-int copyCost = 0;
-int delCost  = 1;
-int insCost  = 1;
-int subCost  = 1;
-int maxCost  = 2;
+/**
+ *	\brief This class is designed to be a simple container for the problem's
+ *	data.  It also contains all the required functions to complete the problem.
+ *	
+ *	To begin solving a problem, use getData() to collect input from the user
+ *	using std input.  Once the data is collected, a user can call processData()
+ *	to solve the internal problem as described by the project.  To get output 
+ *	from the class, use printData() to print the data back to std out in the
+ *	expected format.
+ */
+class EditDistData
+{
+public:
+	void getData();
+	void processData();
+	void printData();
 
-string key;
-string input;
+private:
+	string processToken(const string& token) const;
 
+	string key; // Word to check distance TO.
+	string textBlock; // Block of text to parse each word of.
+	string processedBlock; // Finished text block with words possibly surrounded
+	//		by parens.
+
+	// Costs for the different operations
+	int copyCost = 0;
+	int delCost = 1;
+	int insCost = 1;
+	int subCost = 1;
+	int maxCost = 2;
+
+	bool hasBeenProcessed = false;
+};
 
 /**
- *	\brief Process a token and calculate it's edit distance from the token into 
- *	the key.
+ *	\brief	This function calculates the edit distance from a single word
+ *	to the key that was supplied by the user.  If the distance is less than
+ *	or equal to the max distance, it will be returned with parens, otherwise
+ *	it will be un changed.
  *	
- *	\param token The string from input to process
+ *	\param token The word to start from, calculating the distance TO the key
  *	
- *	\return The processed token with or without parens, depending on edit distance.
+ *	\return If the edit distance is <= the max distance, return "(token)", 
+ *	otherwise return "token".
  */
-string processToken(const string& token)
+string EditDistData::processToken(const string& token) const
 {
 	/**
 	 *	"To transform string s into string t, use a 2D array M in which M(i, j) 
@@ -104,7 +132,6 @@ string processToken(const string& token)
 	vector<vector<int>> transforms{rowTerm.size() + 1};
 	for (int i = 0; i < rowTerm.size() + 1; i++)
 	{
-
 		transforms[i].resize(colTerm.size() + 1);
 		for (int j = 0; j < colTerm.size() + 1; j++)
 		{
@@ -148,9 +175,11 @@ string processToken(const string& token)
 }
 
 /**
- *	Get input from the user to populate the *Global Variables* D:
+ *	\brief	This function collects the data for the Edit Distance Problem from 
+ *	the user.  The data is collected in a very specific order and format 
+ *	according to the assignment directions.
  */
-void getInput()
+void EditDistData::getData()
 {
 	// Get the key term
 	cin >> key;
@@ -172,20 +201,17 @@ void getInput()
 		getline(cin, s);
 
 		// Put in the input
-		input += s + "\n";
+		textBlock += s + "\n";
 	}
 }
 
 /**
- *	\brief Process the user's entered text body.  Each word will be checked for it's edit 
- *	distance to the key term.  The output will be the same as the input, but, words within
- *	the max edit distance will be surrounded by parens.
- *	
- *	\param input Text block from the user's input to process.
- *	
- *	\return Altered text block with some words possibly surrounded by parens.
+ *	\brief This function processes the text block the user input last.  The Text
+ *	is processed, with the edit distance to the key being calculated for each 
+ *	word.  If the distance to the key is less than or equal to the max
+ *	distance, the word will be surrounded by parenthesis.
  */
-string processText(const string& input)
+void EditDistData::processData()
 {
 	bool inWord = false; // Are we currently in a word?
 
@@ -198,9 +224,9 @@ string processText(const string& input)
 	 */
 
 	// Step through each letter of the input
-	for (int i = 0; i < input.size(); i++)
+	for (int i = 0; i < textBlock.size(); i++)
 	{
-		char c = input[i];
+		char c = textBlock[i];
 
 		// If we are NOT in a word, check if we should be
 		if (!inWord)
@@ -219,7 +245,7 @@ string processText(const string& input)
 			}
 		}
 
-		// We are inside a word, so see if we should be leaving it
+			// We are inside a word, so see if we should be leaving it
 		else
 		{
 			// The char is a letter, continue adding to the token
@@ -236,28 +262,41 @@ string processText(const string& input)
 		}
 	}
 
-	// Send back the altered input
-	return output;
+	processedBlock = output;
+	hasBeenProcessed = true;
 }
 
-void printOutput()
+/**
+ *	\brief	This function print's the edit distance data in a formatted way
+ *	according to the assignment instructions.  If the textBlock has NOT been
+ *	processed yet, it will be before it is printed.
+ */
+void EditDistData::printData()
 {
+	if (!hasBeenProcessed)
+		processData();
+
 	// Print some output
 	cout	<< key		<< "\n";
 	cout	<< maxCost	<< "\n"
-			<< copyCost << " "	<< delCost << " " 
-			<< insCost	<< " "	<< subCost << "\n";
+			<< copyCost	<< " "	<< delCost << " "
+			<< insCost	<< " "	<< subCost;
 
-	cout << processText(input);
+	cout << processedBlock;
 }
 
+/**
+ *	\brief	Program's entry point.  Collect the Edit Distance Problem data
+ *	from the user, then process it and print it out.
+ */
 int main()
 {
-	getInput();
+	EditDistData distData;
 
-	cout << "\n\n";
-
-	printOutput();
+	// Handle the problem
+	distData.getData();
+	distData.processData();
+	distData.printData();
 
 	return 0;
 }
